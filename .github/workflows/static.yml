@@ -1,0 +1,52 @@
+name: Deploy static content to Pages
+
+on:
+  # Запуск при пушах в основную ветку
+  push:
+    branches: ["main"]
+
+  # Запуск вручную из вкладки Actions
+  workflow_dispatch:
+
+# Устанавливает разрешения GITHUB_TOKEN для деплоя на GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Ограничение одновременных деплоев, пропуская запуски, стоящие в очереди между текущим и последним
+# Не отменяем текущие запуски для завершения продакшн-деплоев
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Единственная задача деплоя
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+        
+      - name: Install necessary tools
+        run: |
+          sudo apt update
+          sudo apt install -y doxygen graphviz
+          
+      - name: Generate documentation
+        run: doxygen
+        
+      - name: Upload documentation artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './html/'
+          
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
