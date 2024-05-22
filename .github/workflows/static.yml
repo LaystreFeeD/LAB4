@@ -35,7 +35,7 @@ jobs:
         uses: actions/configure-pages@v5
         
       - name: Install necessary tools
-        run: 
+        run: |
           sudo apt update
           sudo apt install -y doxygen graphviz
           
